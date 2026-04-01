@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>gardenlog.ai — your garden</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --forest:#2D5016;--forest-light:#3A6B1E;--sage:#8FBC8F;--sage-light:#A8D5A8;
+  --cream:#FFF8F0;--cream-dark:#F5ECD7;--bark:#5C4033;--bark-light:#8B7355;
+  --moss:#4A7C59;--leaf:#6B8E23;--berry:#8B2252;--sky:#87CEEB;
+  --shadow:0 2px 8px rgba(45,80,22,0.1);--radius:10px;
+  --mono:'SF Mono',SFMono-Regular,Consolas,monospace;
+  --serif:Georgia,'Times New Roman',serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+}
+body{font-family:var(--sans);background:var(--cream);color:var(--bark);min-height:100vh}
+a{color:var(--forest);text-decoration:none}
+
+/* ─── Top Nav ──────────────────────────────────────────────────────── */
+.topbar{background:var(--forest);color:var(--cream);padding:12px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.topbar .logo{font-size:20px;font-family:var(--serif);font-weight:700;letter-spacing:-.5px}
+.topbar .logo span{color:var(--sage)}
+.topbar nav{display:flex;gap:4px;margin-left:auto}
+.topbar nav button{background:transparent;border:none;color:var(--cream);padding:8px 14px;border-radius:6px;font-size:13px;cursor:pointer;font-family:var(--sans);transition:background .15s}
+.topbar nav button:hover,.topbar nav button.active{background:rgba(255,255,255,.15)}
+.topbar nav button.active{font-weight:600}
+
+/* ─── Views ────────────────────────────────────────────────────────── */
+.view{display:none;padding:24px;max-width:1100px;margin:0 auto}
+.view.active{display:block}
+
+/* ─── Cards ────────────────────────────────────────────────────────── */
+.card{background:#fff;border:1px solid #e8e0d4;border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(45,80,22,.15)}
+.card h3{color:var(--forest);font-size:16px;margin-bottom:6px}
+.card p{font-size:13px;color:var(--bark-light);line-height:1.5}
+
+/* ─── Plant Grid ───────────────────────────────────────────────────── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:16px}
+.plant-card .stage{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:8px}
+.stage.seed{background:#E8F5E9;color:#2E7D32}
+.stage.sprout{background:#C8E6C9;color:#1B5E20}
+.stage.vegetative{background:#A5D6A7;color:#1B5E20}
+.stage.flowering{background:#F3E5F5;color:#6A1B9A}
+.stage.fruiting{background:#FFF3E0;color:#E65100}
+.stage.harvested{background:#FFF8E1;color:#F57F17}
+.stage.dormant{background:#ECEFF1;color:#546E7A}
+
+.plant-card .meta{display:flex;gap:12px;margin-top:10px;font-size:12px;color:var(--bark-light)}
+.plant-card .meta span{display:flex;align-items:center;gap:4px}
+.water-indicator{width:8px;height:8px;border-radius:50%;display:inline-block}
+.water-high{background:#2196F3}
+.water-moderate{background:#FFC107}
+.water-low{background:#FF9800}
+
+/* ─── Calendar ─────────────────────────────────────────────────────── */
+.cal-months{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:16px}
+.cal-month{background:#fff;border:1px solid #e8e0d4;border-radius:8px;padding:12px;cursor:pointer;transition:all .15s}
+.cal-month:hover{border-color:var(--sage)}
+.cal-month.current{border-color:var(--forest);background:var(--sage-light)}
+.cal-month h4{font-size:14px;color:var(--forest);margin-bottom:6px}
+.cal-month ul{list-style:none;font-size:12px}
+.cal-month li{padding:2px 0;color:var(--bark-light)}
+.cal-month li::before{content:'→ ';color:var(--sage)}
+.cal-actions{color:var(--leaf);font-weight:600}
+.cal-harvest{color:var(--berry);font-weight:600}
+
+/* ─── Chat ─────────────────────────────────────────────────────────── */
+.chat-container{display:flex;flex-direction:column;height:calc(100vh - 120px)}
+.chat-messages{flex:1;overflow-y:auto;padding:16px 0}
+.chat-msg{margin-bottom:16px;max-width:700px;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.chat-msg.user{margin-left:auto;text-align:right}
+.chat-msg .role{font-size:10px;color:var(--bark-light);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px}
+.chat-msg .bubble{padding:12px 16px;border-radius:12px;line-height:1.6;font-size:14px;white-space:pre-wrap;word-break:break-word}
+.chat-msg.user .bubble{background:var(--forest);color:var(--cream);border-bottom-right-radius:2px;display:inline-block;text-align:left}
+.chat-msg.assistant .bubble{background:#fff;border:1px solid #e8e0d4;border-bottom-left-radius:2px}
+.chat-input-area{display:flex;gap:8px;padding-top:12px;border-top:1px solid #e8e0d4}
+.chat-input-area textarea{flex:1;padding:12px;border-radius:10px;border:1px solid #e8e0d4;background:#fff;font-family:var(--sans);font-size:14px;outline:none;resize:none;min-height:44px;max-height:120px}
+.chat-input-area textarea:focus{border-color:var(--sage)}
+.btn{padding:10px 20px;border-radius:8px;border:none;font-family:var(--sans);font-weight:600;font-size:13px;cursor:pointer;transition:background .15s}
+.btn-primary{background:var(--forest);color:var(--cream)}
+.btn-primary:hover{background:var(--forest-light)}
+.btn-secondary{background:var(--sage);color:var(--forest)}
+.btn-secondary:hover{background:var(--sage-light)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-sm{padding:6px 12px;font-size:12px}
+
+/* ─── Journal ──────────────────────────────────────────────────────── */
+.journal-entries{display:flex;flex-direction:column;gap:16px;margin-top:16px}
+.journal-entry{background:#fff;border:1px solid #e8e0d4;border-radius:var(--radius);padding:20px}
+.journal-entry .date{font-size:12px;color:var(--bark-light);margin-bottom:4px}
+.journal-entry h3{color:var(--forest);font-size:16px;margin-bottom:8px}
+.journal-entry .body{font-size:14px;line-height:1.7;color:var(--bark)}
+.journal-entry .tags{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.tag{background:var(--sage-light);color:var(--forest);padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500}
+
+/* ─── Harvest ──────────────────────────────────────────────────────── */
+.harvest-chart{background:#fff;border:1px solid #e8e0d4;border-radius:var(--radius);padding:20px;margin-top:16px}
+.harvest-bars{display:flex;align-items:flex-end;gap:8px;height:180px;padding-top:20px;border-bottom:2px solid #e8e0d4}
+.harvest-bar{flex:1;background:var(--sage);border-radius:6px 6px 0 0;min-width:30px;position:relative;transition:height .3s}
+.harvest-bar:hover{background:var(--forest)}
+.harvest-bar .bar-label{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--bark-light);white-space:nowrap}
+
+/* ─── Weather ──────────────────────────────────────────────────────── */
+.weather-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:16px}
+.weather-card{background:#fff;border:1px solid #e8e0d4;border-radius:var(--radius);padding:16px}
+.weather-card.warning{border-left:4px solid #FF9800}
+.weather-card.tip{border-left:4px solid var(--leaf)}
+.weather-card.info{border-left:4px solid var(--sky)}
+.weather-card h4{font-size:14px;color:var(--forest);margin-bottom:6px}
+.weather-card p{font-size:13px;color:var(--bark-light);line-height:1.5}
+
+/* ─── Forms / Modals ───────────────────────────────────────────────── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--cream);border-radius:12px;padding:24px;width:90%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.modal h2{font-size:18px;color:var(--forest);margin-bottom:16px;font-family:var(--serif)}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--bark);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px;border:1px solid #d4cdc0;border-radius:8px;font-family:var(--sans);font-size:14px;outline:none;background:#fff}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--sage)}
+.form-group textarea{min-height:80px;resize:vertical}
+.form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+
+/* ─── Section Headers ──────────────────────────────────────────────── */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.section-header h2{font-size:22px;color:var(--forest);font-family:var(--serif);font-weight:400}
+.section-header .subtitle{font-size:13px;color:var(--bark-light);margin-top:2px}
+
+/* ─── Responsive ───────────────────────────────────────────────────── */
+@media(max-width:640px){
+  .topbar{padding:10px 16px}
+  .topbar nav button{padding:6px 8px;font-size:12px}
+  .view{padding:16px}
+  .grid{grid-template-columns:1fr}
+  .chat-container{height:calc(100vh - 100px)}
+}
+
+/* ─── Empty State ──────────────────────────────────────────────────── */
+.empty-state{text-align:center;padding:60px 20px;color:var(--bark-light)}
+.empty-state .icon{font-size:48px;margin-bottom:12px}
+.empty-state h3{color:var(--forest);font-size:18px;margin-bottom:8px}
+.empty-state p{font-size:14px;max-width:400px;margin:0 auto 20px}
+
+/* ─── Companion badges ─────────────────────────────────────────────── */
+.companions{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.friend{background:var(--sage-light);color:var(--forest);padding:2px 8px;border-radius:10px;font-size:11px}
+.foe{background:#FFCDD2;color:#B71C1C;padding:2px 8px;border-radius:10px;font-size:11px}
+
+/* ─── Misc ─────────────────────────────────────────────────────────── */
+.flex-between{display:flex;justify-content:space-between;align-items:center}
+.mb-4{margin-bottom:16px}
+.mt-2{margin-top:8px}
+.text-sm{font-size:13px}
+.text-muted{color:var(--bark-light)}
+</style>
+</head>
+<body>
+
+<!-- ═══ Top Bar ═══ -->
+<div class="topbar">
+  <div class="logo">garden<span>log</span>.ai</div>
+  <nav>
+    <button class="active" onclick="showView('plants')">Plants</button>
+    <button onclick="showView('calendar')">Calendar</button>
+    <button onclick="showView('harvest')">Harvest</button>
+    <button onclick="showView('journal')">Journal</button>
+    <button onclick="showView('weather')">Weather</button>
+    <button onclick="showView('chat')">Chat</button>
+  </nav>
+</div>
+
+<!-- ═══ Plants View ═══ -->
+<div id="view-plants" class="view active">
+  <div class="section-header">
+    <div>
+      <h2>Your Garden</h2>
+      <div class="subtitle" id="plant-count">No plants yet</div>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('plant')">+ Add Plant</button>
+  </div>
+  <div id="plants-grid" class="grid"></div>
+  <div id="plants-empty" class="empty-state">
+    <div class="icon">&#127793;</div>
+    <h3>Your garden awaits</h3>
+    <p>Add your first plant and the cocapn will start remembering your garden.</p>
+    <button class="btn btn-primary" onclick="openModal('plant')">+ Add Your First Plant</button>
+  </div>
+</div>
+
+<!-- ═══ Calendar View ═══ -->
+<div id="view-calendar" class="view">
+  <div class="section-header">
+    <div>
+      <h2>Planting Calendar</h2>
+      <div class="subtitle" id="cal-subtitle">What to plant this month</div>
+    </div>
+    <select id="cal-zone" class="btn btn-secondary" onchange="loadCalendar()" style="font-size:12px">
+      <option value="5">Zone 5</option><option value="6">Zone 6</option>
+      <option value="7" selected>Zone 7</option><option value="8">Zone 8</option>
+      <option value="9">Zone 9</option><option value="10">Zone 10</option>
+    </select>
+  </div>
+  <div id="calendar-grid" class="cal-months"></div>
+</div>
+
+<!-- ═══ Harvest View ═══ -->
+<div id="view-harvest" class="view">
+  <div class="section-header">
+    <div>
+      <h2>Harvest Log</h2>
+      <div class="subtitle" id="harvest-count">No harvests recorded</div>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('harvest')">+ Log Harvest</button>
+  </div>
+  <div id="harvest-chart" class="harvest-chart" style="display:none">
+    <h3 style="color:var(--forest);font-size:14px;margin-bottom:12px">Yields by Plant</h3>
+    <div id="harvest-bars" class="harvest-bars"></div>
+    <div id="harvest-labels" style="display:flex;gap:8px;padding-top:24px"></div>
+  </div>
+  <div id="harvest-list" class="grid" style="margin-top:16px"></div>
+  <div id="harvest-empty" class="empty-state">
+    <div class="icon">&#127813;</div>
+    <h3>No harvests yet</h3>
+    <p>Log your first harvest to start tracking yields.</p>
+    <button class="btn btn-primary" onclick="openModal('harvest')">+ Log First Harvest</button>
+  </div>
+</div>
+
+<!-- ═══ Journal View ═══ -->
+<div id="view-journal" class="view">
+  <div class="section-header">
+    <div>
+      <h2>Garden Journal</h2>
+      <div class="subtitle">Notes, observations, memories</div>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('journal')">+ New Entry</button>
+  </div>
+  <div id="journal-list" class="journal-entries"></div>
+  <div id="journal-empty" class="empty-state">
+    <div class="icon">&#128221;</div>
+    <h3>Start your garden journal</h3>
+    <p>Record what you observe. The cocapn remembers.</p>
+    <button class="btn btn-primary" onclick="openModal('journal')">+ Write First Entry</button>
+  </div>
+</div>
+
+<!-- ═══ Weather View ═══ -->
+<div id="view-weather" class="view">
+  <div class="section-header">
+    <div>
+      <h2>Seasonal Wisdom</h2>
+      <div class="subtitle" id="weather-subtitle">Recommendations for your zone</div>
+    </div>
+  </div>
+  <div id="weather-cards" class="weather-cards"></div>
+</div>
+
+<!-- ═══ Chat View ═══ -->
+<div id="view-chat" class="view">
+  <div class="chat-container">
+    <div class="section-header mb-4">
+      <div>
+        <h2>Ask the Cocapn</h2>
+        <div class="subtitle">Why are my tomato leaves yellow? When should I plant garlic?</div>
+      </div>
+    </div>
+    <div id="chat-messages" class="chat-messages"></div>
+    <div class="chat-input-area">
+      <textarea id="chat-input" placeholder="Ask about your garden..." rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"></textarea>
+      <button class="btn btn-primary" id="chat-send" onclick="sendChat()">Ask</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Modals ═══ -->
+<div id="modal-plant" class="modal-overlay" onclick="if(event.target===this)closeModals()">
+  <div class="modal">
+    <h2>&#127793; Add Plant</h2>
+    <input type="hidden" id="plant-id">
+    <div class="form-group"><label>Name</label><input id="plant-name" placeholder="e.g. Tomato"></div>
+    <div class="form-group"><label>Variety</label><input id="plant-variety" placeholder="e.g. Cherokee Purple"></div>
+    <div class="form-group"><label>Hardiness Zone</label>
+      <select id="plant-zone"><option>5a</option><option>5b</option><option>6a</option><option>6b</option><option selected>7a</option><option>7b</option><option>8a</option><option>8b</option><option>9a</option><option>9b</option><option>10a</option><option>10b</option></select>
+    </div>
+    <div class="form-group"><label>Sun Needs</label>
+      <select id="plant-sun"><option value="full">Full Sun</option><option value="partial">Partial Sun</option><option value="shade">Shade</option></select>
+    </div>
+    <div class="form-group"><label>Water Needs</label>
+      <select id="plant-water"><option value="low">Low</option><option value="moderate" selected>Moderate</option><option value="high">High</option></select>
+    </div>
+    <div class="form-group"><label>Planted Date</label><input id="plant-date" type="date"></div>
+    <div class="form-group"><label>Watering Schedule (days)</label><input id="plant-schedule" type="number" value="3" min="1" max="30"></div>
+    <div class="form-group"><label>Growth Stage</label>
+      <select id="plant-stage"><option value="seed">Seed</option><option value="sprout">Sprout</option><option value="vegetative" selected>Vegetative</option><option value="flowering">Flowering</option><option value="fruiting">Fruiting</option><option value="harvested">Harvested</option><option value="dormant">Dormant</option></select>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea id="plant-notes" placeholder="Any notes about this plant..."></textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModals()">Cancel</button>
+      <button class="btn btn-primary" onclick="savePlant()">Save Plant</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-harvest" class="modal-overlay" onclick="if(event.target===this)closeModals()">
+  <div class="modal">
+    <h2>&#127813; Log Harvest</h2>
+    <div class="form-group"><label>Plant</label><input id="harvest-plant" placeholder="e.g. Tomato" list="plant-list"></div>
+    <datalist id="plant-list"></datalist>
+    <div class="form-group"><label>Amount</label><input id="harvest-amount" placeholder="e.g. 2.5 lbs, 12 tomatoes"></div>
+    <div class="form-group"><label>Date</label><input id="harvest-date" type="date"></div>
+    <div class="form-group"><label>Quality (1-5)</label>
+      <select id="harvest-quality"><option value="1">1 - Poor</option><option value="2">2 - Fair</option><option value="3">3 - Good</option><option value="4" selected>4 - Very Good</option><option value="5">5 - Excellent</option></select>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea id="harvest-notes" placeholder="Taste, size, pests, etc."></textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModals()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveHarvest()">Log Harvest</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-journal" class="modal-overlay" onclick="if(event.target===this)closeModals()">
+  <div class="modal">
+    <h2>&#128221; Journal Entry</h2>
+    <div class="form-group"><label>Title</label><input id="journal-title" placeholder="e.g. First tomato harvest!"></div>
+    <div class="form-group"><label>Date</label><input id="journal-date" type="date"></div>
+    <div class="form-group"><label>Tags (comma separated)</label><input id="journal-tags" placeholder="e.g. tomato, harvest, organic"></div>
+    <div class="form-group"><label>Entry</label><textarea id="journal-body" placeholder="What happened in the garden today..." style="min-height:150px"></textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModals()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveJournal()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ JavaScript ═══ -->
+<script>
+// ─── State ──────────────────────────────────────────────────────────
+let plants=[], harvests=[], journal=[];
+
+// ─── Navigation ─────────────────────────────────────────────────────
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.topbar nav button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  if (name === 'calendar') loadCalendar();
+  if (name === 'weather') loadWeather();
+  if (name === 'harvest') renderHarvests();
+  if (name === 'journal') loadJournal();
+}
+
+// ─── API helpers ────────────────────────────────────────────────────
+async function api(path, opts = {}) {
+  const res = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...opts });
+  return res.json();
+}
+
+// ─── Plants ─────────────────────────────────────────────────────────
+async function loadPlants() {
+  plants = await api('/api/plants');
+  renderPlants();
+}
+
+function renderPlants() {
+  const grid = document.getElementById('plants-grid');
+  const empty = document.getElementById('plants-empty');
+  const count = document.getElementById('plant-count');
+
+  if (plants.length === 0) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    count.textContent = 'No plants yet';
+    return;
+  }
+
+  empty.style.display = 'none';
+  count.textContent = `${plants.length} plant${plants.length !== 1 ? 's' : ''} in your garden`;
+
+  grid.innerHTML = plants.map(p => `
+    <div class="card plant-card">
+      <div class="flex-between">
+        <h3>${esc(p.name)}</h3>
+        <button class="btn btn-sm btn-secondary" onclick="deletePlant('${p.id}')" title="Remove">&times;</button>
+      </div>
+      ${p.variety ? `<p style="font-style:italic">${esc(p.variety)}</p>` : ''}
+      <div class="stage ${p.stage}">${p.stage}</div>
+      <div class="meta">
+        <span>&#9728; ${p.sunNeeds}</span>
+        <span><span class="water-indicator water-${p.waterNeeds}"></span> ${p.waterNeeds}</span>
+        <span>&#127757; Zone ${esc(p.zone)}</span>
+      </div>
+      ${p.companions.length ? `<div class="companions">${p.companions.map(c=>`<span class="friend">${esc(c)}</span>`).join('')}</div>` : ''}
+      ${p.notes ? `<p class="mt-2">${esc(p.notes)}</p>` : ''}
+      <p class="text-sm text-muted mt-2">Planted: ${p.plantedDate} &middot; Water every ${p.wateringScheduleDays}d</p>
+    </div>
+  `).join('');
+}
+
+async function savePlant() {
+  const id = document.getElementById('plant-id').value;
+  const data = {
+    name: document.getElementById('plant-name').value.trim(),
+    variety: document.getElementById('plant-variety').value.trim(),
+    zone: document.getElementById('plant-zone').value,
+    sunNeeds: document.getElementById('plant-sun').value,
+    waterNeeds: document.getElementById('plant-water').value,
+    plantedDate: document.getElementById('plant-date').value || new Date().toISOString().split('T')[0],
+    wateringScheduleDays: parseInt(document.getElementById('plant-schedule').value) || 3,
+    stage: document.getElementById('plant-stage').value,
+    notes: document.getElementById('plant-notes').value.trim(),
+  };
+  if (!data.name) return alert('Plant name is required');
+  if (id) data.id = id;
+  await api('/api/plants', { method: 'POST', body: JSON.stringify(data) });
+  closeModals();
+  loadPlants();
+}
+
+async function deletePlant(id) {
+  if (!confirm('Remove this plant from your garden?')) return;
+  await api('/api/plants/' + id, { method: 'DELETE' });
+  loadPlants();
+}
+
+// ─── Harvests ────────────────────────────────────────────────────────
+async function loadHarvests() {
+  harvests = await api('/api/harvest');
+  renderHarvests();
+}
+
+function renderHarvests() {
+  const list = document.getElementById('harvest-list');
+  const empty = document.getElementById('harvest-empty');
+  const chart = document.getElementById('harvest-chart');
+  const count = document.getElementById('harvest-count');
+
+  if (harvests.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    chart.style.display = 'none';
+    count.textContent = 'No harvests recorded';
+    return;
+  }
+
+  empty.style.display = 'none';
+  chart.style.display = 'block';
+  count.textContent = `${harvests.length} harvest${harvests.length !== 1 ? 's' : ''} recorded`;
+
+  // Yield chart
+  const byPlant = {};
+  harvests.forEach(h => { byPlant[h.plantName] = (byPlant[h.plantName] || 0) + 1; });
+  const maxCount = Math.max(...Object.values(byPlant), 1);
+  document.getElementById('harvest-bars').innerHTML = Object.entries(byPlant).map(([name, count]) =>
+    `<div class="harvest-bar" style="height:${(count/maxCount)*150}px" title="${name}: ${count} harvests">
+      <div class="bar-label">${name}</div>
+    </div>`
+  ).join('');
+
+  list.innerHTML = harvests.sort((a,b) => b.date.localeCompare(a.date)).map(h => `
+    <div class="card">
+      <div class="flex-between">
+        <h3>${esc(h.plantName)}</h3>
+        <span style="font-size:12px;color:var(--bark-light)">${h.date}</span>
+      </div>
+      <p style="font-size:18px;color:var(--forest);font-weight:600;margin:4px 0">${esc(h.amount)}</p>
+      <div class="flex-between">
+        <span class="text-sm text-muted">${esc(h.season)}</span>
+        <span style="color:#F57F17;font-size:12px">${'&#9733;'.repeat(h.quality)}</span>
+      </div>
+      ${h.notes ? `<p class="mt-2 text-sm">${esc(h.notes)}</p>` : ''}
+    </div>
+  `).join('');
+}
+
+async function saveHarvest() {
+  const data = {
+    plantName: document.getElementById('harvest-plant').value.trim(),
+    amount: document.getElementById('harvest-amount').value.trim(),
+    date: document.getElementById('harvest-date').value || new Date().toISOString().split('T')[0],
+    quality: parseInt(document.getElementById('harvest-quality').value),
+    notes: document.getElementById('harvest-notes').value.trim(),
+  };
+  if (!data.plantName || !data.amount) return alert('Plant name and amount are required');
+  await api('/api/harvest', { method: 'POST', body: JSON.stringify(data) });
+  closeModals();
+  loadHarvests();
+}
+
+// ─── Calendar ────────────────────────────────────────────────────────
+async function loadCalendar() {
+  const zone = document.getElementById('cal-zone').value;
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const currentMonth = new Date().getMonth() + 1;
+  const data = await api('/api/garden/calendar?zone=' + zone);
+
+  const grid = document.getElementById('calendar-grid');
+  const byMonth = {};
+  data.forEach(e => { if (!byMonth[e.month]) byMonth[e.month] = []; byMonth[e.month].push(e); });
+
+  grid.innerHTML = months.map((name, i) => {
+    const m = i + 1;
+    const entries = byMonth[m] || [];
+    const isCurrent = m === currentMonth;
+    return `<div class="cal-month${isCurrent ? ' current' : ''}">
+      <h4>${name}${isCurrent ? ' (now)' : ''}</h4>
+      <ul>${entries.length ? entries.map(e =>
+        `<li class="cal-${e.action === 'harvest_window' ? 'harvest' : 'actions'}">${e.plantName} — ${e.action.replace(/_/g,' ')}</li>`
+      ).join('') : '<li style="color:#ccc">No tasks</li>'}</ul>
+    </div>`;
+  }).join('');
+
+  document.getElementById('cal-subtitle').textContent = `Zone ${zone} — ${months[currentMonth-1]}`;
+}
+
+// ─── Weather ─────────────────────────────────────────────────────────
+async function loadWeather() {
+  const zone = document.getElementById('cal-zone')?.value || '7';
+  const month = new Date().getMonth() + 1;
+  const data = await api('/api/garden/weather?month=' + month + '&zone=' + zone);
+  const seasons = {1:'Winter',2:'Winter',3:'Spring',4:'Spring',5:'Spring',6:'Summer',7:'Summer',8:'Summer',9:'Fall',10:'Fall',11:'Fall',12:'Winter'};
+  document.getElementById('weather-subtitle').textContent = `${seasons[month]} recommendations for Zone ${zone}`;
+
+  document.getElementById('weather-cards').innerHTML = data.recommendations.map(r =>
+    `<div class="weather-card ${r.urgency}">
+      <h4>${esc(r.condition)}</h4>
+      <p>${esc(r.advice)}</p>
+    </div>`
+  ).join('');
+}
+
+// ─── Journal ─────────────────────────────────────────────────────────
+async function loadJournal() {
+  journal = await api('/api/journal');
+  renderJournal();
+}
+
+function renderJournal() {
+  const list = document.getElementById('journal-list');
+  const empty = document.getElementById('journal-empty');
+
+  if (journal.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  list.innerHTML = journal.map(j => `
+    <div class="journal-entry">
+      <div class="date">${j.date}</div>
+      <h3>${esc(j.title)}</h3>
+      <div class="body">${esc(j.body)}</div>
+      ${j.tags.length ? `<div class="tags">${j.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+async function saveJournal() {
+  const data = {
+    title: document.getElementById('journal-title').value.trim(),
+    date: document.getElementById('journal-date').value || new Date().toISOString().split('T')[0],
+    tags: document.getElementById('journal-tags').value.split(',').map(t => t.trim()).filter(Boolean),
+    body: document.getElementById('journal-body').value.trim(),
+  };
+  if (!data.title) return alert('Title is required');
+  await api('/api/journal', { method: 'POST', body: JSON.stringify(data) });
+  closeModals();
+  loadJournal();
+}
+
+// ─── Chat ────────────────────────────────────────────────────────────
+let chatBusy = false;
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text || chatBusy) return;
+  input.value = '';
+  chatBusy = true;
+  document.getElementById('chat-send').disabled = true;
+
+  addChatMsg('user', text);
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text }),
+    });
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let full = '', msgDiv = null;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+      for (const line of chunk.split('\n')) {
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.slice(6).trim();
+        if (payload === '[DONE]') break;
+        try {
+          const d = JSON.parse(payload);
+          if (d.content) {
+            full += d.content;
+            if (!msgDiv) msgDiv = addChatMsg('assistant', '');
+            msgDiv.querySelector('.bubble').textContent = full;
+            document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+          }
+          if (d.error) { addChatMsg('assistant', 'Error: ' + d.error); break; }
+        } catch {}
+      }
+    }
+    if (!full && !msgDiv) addChatMsg('assistant', '(no response)');
+  } catch (e) {
+    addChatMsg('assistant', 'Error: ' + e.message);
+  }
+
+  chatBusy = false;
+  document.getElementById('chat-send').disabled = false;
+  input.focus();
+}
+
+function addChatMsg(role, text) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'chat-msg ' + role;
+  div.innerHTML = `<div class="role">${role === 'user' ? 'You' : 'Cocapn'}</div><div class="bubble">${esc(text)}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+// ─── Modal helpers ──────────────────────────────────────────────────
+function openModal(type) {
+  closeModals();
+  document.getElementById('modal-' + type).classList.add('open');
+  // Set today's date as default
+  const today = new Date().toISOString().split('T')[0];
+  if (type === 'plant') document.getElementById('plant-date').value = today;
+  if (type === 'harvest') document.getElementById('harvest-date').value = today;
+  if (type === 'journal') document.getElementById('journal-date').value = today;
+  // Populate plant datalist for harvest
+  if (type === 'harvest') {
+    document.getElementById('plant-list').innerHTML = plants.map(p => `<option value="${esc(p.name)}">`).join('');
+  }
+}
+
+function closeModals() {
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
+  // Clear forms
+  document.querySelectorAll('.modal input:not([type=hidden]), .modal textarea, .modal select').forEach(el => {
+    if (el.tagName === 'SELECT') el.selectedIndex = 0;
+    else el.value = el.defaultValue || '';
+  });
+  document.getElementById('plant-id').value = '';
+}
+
+// ─── Util ────────────────────────────────────────────────────────────
+function esc(t) {
+  const d = document.createElement('div');
+  d.textContent = t;
+  return d.innerHTML;
+}
+
+// ─── Init ────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadPlants();
+  loadHarvests();
+  // Auto-resize textarea
+  document.getElementById('chat-input').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  });
+});
+</script>
+</body>
+</html>
