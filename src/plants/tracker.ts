@@ -94,7 +94,7 @@ const CALENDAR_DATA: CalendarEntry[] = [
   { month: 5,  plantName: 'pepper',     action: 'transplant',    zone: '5-7', notes: 'Wait until nights are 55F+' },
   { month: 5,  plantName: 'cucumber',   action: 'direct_sow',    zone: '5-7', notes: 'Soil must be 60F+, sensitive to cold' },
   { month: 5,  plantName: 'squash',     action: 'direct_sow',    zone: '5-7', notes: 'Sow after last frost' },
-  { month: 5,  plantName: 'beans',      action: 'direct_sow',    zone: '5-7', notes: 'Soil 60F+, don't soak before planting' },
+  { month: 5,  plantName: 'beans',      action: 'direct_sow',    zone: '5-7', notes: 'Soil 60F+, don\'t soak before planting' },
   { month: 5,  plantName: 'basil',      action: 'transplant',    zone: '5-7', notes: 'Night temps 50F+' },
   { month: 5,  plantName: 'corn',       action: 'direct_sow',    zone: '5-7', notes: 'Plant in blocks for pollination' },
   { month: 6,  plantName: 'strawberry', action: 'harvest_window', zone: '5-7', notes: 'June-bearing varieties peak' },
