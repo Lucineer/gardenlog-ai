@@ -9,3 +9,7 @@ compatibility_date = "2024-01-01"
 [[kv_namespaces]]
 binding = "GARDEN_KV"
 id = "PLACEHOLDER_KV_ID"
+
+[[kv_namespaces]]
+binding = "KG"
+id = "c7886204c80845c6b9568693ed277b75"
