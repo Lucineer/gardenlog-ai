@@ -562,6 +562,8 @@ export default {
 
     // POST /api/garden/succession
     if (method === 'POST' && path === '/api/garden/succession') {
+
+  if (path === '/api/efficiency' && request.method === 'GET') {    return new Response(JSON.stringify({ totalCached: 0, totalHits: 0, cacheHitRate: 0, tokensSaved: 0, repo: 'gardenlog-ai', timestamp: Date.now() }), { headers: { 'Content-Type': 'application/json', ...corsHeaders() } });  }
       let body: { plantName?: string; startDate?: string; intervalDays?: number; count?: number };
       try { body = await req.json() as typeof body; }
       catch { return json({ error: 'Invalid JSON' }, 400); }
