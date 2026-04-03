@@ -245,6 +245,12 @@ export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
     const path = url.pathname;
+
+  if (path === '/health') {
+    return new Response(JSON.stringify({ status: 'ok', repo: 'gardenlog-ai', timestamp: Date.now() }), {
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+    });
+  }
     const method = req.method;
     // ── Knowledge Graph (Phase 4B) ──
     if (path.startsWith('/api/kg')) {
