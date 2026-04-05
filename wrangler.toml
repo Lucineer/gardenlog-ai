@@ -1,5 +1,5 @@
-account_id = "2bd99d5b13b2186382cd3dc995b0bb18"
 name = "gardenlog-ai"
+account_id = "049ff5e84ecf636b53b162cbb580aae6"
 main = "src/worker.ts"
 compatibility_date = "2024-01-01"
 
@@ -9,8 +9,8 @@ compatibility_date = "2024-01-01"
 
 [[kv_namespaces]]
 binding = "GARDEN_KV"
-id = "fd02f3356c724bf1805fa937d414d309"
+id = "7bbca24f87d2499c9348cd29b26bfa90"
 
 [[kv_namespaces]]
 binding = "KG"
-id = "c7886204c80845c6b9568693ed277b75"
+id = "7bbca24f87d2499c9348cd29b26bfa90"
