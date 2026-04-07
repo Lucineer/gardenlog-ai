@@ -1,87 +1,52 @@
-# gardenlog.ai
+# Gardenlog Agent
 
-A vessel for gardeners. The cocapn remembers every plant, every harvest, every season. It learns your microclimate.
+A personal garden assistant that tracks plants, harvests, and observations over seasons. It runs on your own Cloudflare Worker, stores data in your KV namespace, and uses AI to provide context-specific guidance based on your garden's history.
 
-Built on [Cloudflare Workers](https://workers.cloudflare.com/) with KV storage and DeepSeek AI.
+Use it to remember planting dates, track yields, plan rotations, and understand what works in your specific microclimate.
 
-## Features
+## How It Works
 
-- **Plant Tracker** — profiles with variety, zone, sun/water needs, companions, growth stages
-- **Planting Calendar** — zone-aware calendar telling you what to plant and when
-- **Companion Planting** — database of which plants grow well together (and which don't)
-- **Harvest Log** — track yields per plant per season with quality ratings
-- **Garden Journal** — notes, observations, and memories with tags
-- **Weather Wisdom** — seasonal recommendations tailored to your hardiness zone
-- **Garden Chat** — ask the cocapn anything: "why are my tomato leaves yellow?"
-- **Crop Rotation** — automated rotation guidance by plant family
-- **Succession Planting** — stagger plantings for continuous harvest
-- **Soil Health** — track pH, nutrients, organic matter, and get amendment advice
-- **Plant Memory** — remembers what worked and what didn't season over season
+This is a Cocapn fleet agent—a self-contained application that you deploy to Cloudflare Workers. All garden data (plants, harvests, notes) is stored in your own KV database. The agent uses DeepSeek's AI model to answer questions based solely on your logged garden history and hardiness zone, not generic internet advice.
 
-## Routes
+## What It Does
+
+- **Plant Profiles**: Track varieties, planting dates, sun/water needs, and growth stages.
+- **Harvest Logging**: Record yields, weights, and quality notes per plant per season.
+- **Garden Calendar**: Zone-aware planting dates that adjust based on your local conditions.
+- **Companion Planting**: Reference which plants grow well together (or shouldn't).
+- **Seasonal Memory**: Remembers what worked and didn't in previous seasons.
+- **Chat Interface**: Ask questions like "why are my tomato leaves yellow?" and get answers grounded in your garden's history.
+
+## Quick Start
+
+1. Fork this repository
+2. Create a Cloudflare KV namespace named `GARDENLOG_STORE`
+3. Add your DeepSeek API key as a secret: `DEEPSEEK_API_KEY`
+4. Deploy to Cloudflare Workers
+5. Visit your worker URL and start logging plants
+
+Your data stays in your KV store. The agent improves as you add more seasons.
+
+## API Reference
 
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/` | Landing page |
-| `GET` | `/app.html` | Full garden UI |
-| `POST` | `/api/chat` | SSE streaming chat with DeepSeek |
-| `GET/POST` | `/api/plants` | List / create plants |
+| `GET` | `/app.html` | Garden management interface |
+| `POST` | `/api/chat` | Chat with your garden assistant (SSE streaming) |
+| `GET/POST` | `/api/plants` | List or create plants |
 | `DELETE` | `/api/plants/:id` | Remove a plant |
-| `GET` | `/api/plants/companions/:name` | Companion planting lookup |
-| `GET/POST` | `/api/harvest` | List / log harvests |
-| `GET` | `/api/garden/calendar` | Planting calendar (?month=N&plant=name&zone=N) |
-| `GET` | `/api/garden/weather` | Weather recommendations (?month=N&zone=N) |
-| `GET/POST` | `/api/garden/beds` | Garden bed management |
-| `GET/POST` | `/api/garden/soil` | Soil readings and amendments |
-| `GET/POST` | `/api/journal` | Garden journal entries |
-| `GET/POST` | `/api/memory` | Plant memory (season outcomes) |
-| `GET` | `/api/garden/rotation` | Crop rotation guidance |
-| `GET/POST` | `/api/garden/succession` | Succession planting plans |
+| `GET/POST` | `/api/harvest` | List or log harvests |
+| `GET` | `/api/garden/calendar` | Planting calendar with month/zone filters |
+| `GET/POST` | `/api/journal` | Garden observations and notes |
 
-## Setup
+## Limitations
 
-```bash
-# Install dependencies
-npm install
+The agent's memory is only as good as the data you provide. It learns from your logged plants, harvests, and notes—if you don't record something, it won't remember it. First-season guidance will be more generic until you build up your garden's history.
 
-# Set your DeepSeek API key
-wrangler secret put DEEPSEEK_API_KEY
+---
 
-# Create a KV namespace and update wrangler.toml with the ID
-wrangler kv:namespace create "GARDEN_KV"
-
-# Run locally
-npm run dev
-
-# Deploy
-npm run deploy
-```
-
-## Project Structure
-
-```
-src/
-  worker.ts          # Cloudflare Worker — all API routes + SSE chat
-  landing.ts         # Landing page HTML
-  plants/
-    tracker.ts       # PlantProfile, PlantingCalendar, CompanionPlanting, HarvestTracker, PlantMemory
-  garden/
-    planner.ts       # GardenLayout, SeasonalPlan, SuccessionPlanting, SoilHealthTracker, CropRotation
-public/
-  app.html           # Full green-themed UI (forest green, sage, cream)
-seed/                # cocapn universal seed (parent framework)
-```
-
-## UI Colors
-
-| Name | Hex | Use |
-|------|-----|-----|
-| Forest | `#2D5016` | Primary, headers, buttons |
-| Sage | `#8FBC8F` | Accents, secondary buttons |
-| Cream | `#FFF8F0` | Background |
-| Bark | `#5C4033` | Body text |
-| Moss | `#4A7C59` | Subheadings, links |
-
-## Author
-
-**Superinstance** — a cocapn vessel
+<div>
+  <p>Part of the <a href="https://the-fleet.casey-digennaro.workers.dev" target="_blank">Cocapn Fleet</a> • Built by <a href="https://cocapn.ai" target="_blank">Superinstance & Lucineer (DiGennaro et al.)</a></p>
+  <p>MIT Licensed • Cloudflare Workers • Fork-first deployment</p>
+</div>
