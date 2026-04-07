@@ -1,31 +1,42 @@
 # Gardenlog Agent
 
-A personal garden assistant that tracks plants, harvests, and observations over seasons. It runs on your own Cloudflare Worker, stores data in your KV namespace, and uses AI to provide context-specific guidance based on your garden's history.
+You forget when you planted the peas. You need a record of what actually worked in your yard, not generic advice.
 
-Use it to remember planting dates, track yields, plan rotations, and understand what works in your specific microclimate.
+This agent stores your garden's history in your own Cloudflare account. It learns from your notes each season. It doesn't share your data, sell you features, or require a subscription.
+
+Live instance: https://gardenlog-ai.casey-digennaro.workers.dev
+
+---
+
+## Purpose
+Most garden tools require accounts, lock in your data, or give generic advice untested in your conditions. This is a local-first alternative that runs on your infrastructure. You control the data and the deployment.
 
 ## How It Works
+This is a fork-first agent in the Cocapn Fleet. You deploy it to your own Cloudflare Worker. All logs, harvest weights, and plant records are stored in your private KV namespace. The agent uses your local data for context when answering questions.
 
-This is a Cocapn fleet agent—a self-contained application that you deploy to Cloudflare Workers. All garden data (plants, harvests, notes) is stored in your own KV database. The agent uses DeepSeek's AI model to answer questions based solely on your logged garden history and hardiness zone, not generic internet advice.
+It does not train on external garden blogs. It only uses what you've recorded about your own garden.
 
-## What It Does
+---
 
-- **Plant Profiles**: Track varieties, planting dates, sun/water needs, and growth stages.
-- **Harvest Logging**: Record yields, weights, and quality notes per plant per season.
-- **Garden Calendar**: Zone-aware planting dates that adjust based on your local conditions.
-- **Companion Planting**: Reference which plants grow well together (or shouldn't).
-- **Seasonal Memory**: Remembers what worked and didn't in previous seasons.
-- **Chat Interface**: Ask questions like "why are my tomato leaves yellow?" and get answers grounded in your garden's history.
+## Features
+- **Plant Profiles**: Record varieties, planting dates, sun/water notes, and garden location
+- **Harvest Logging**: Track yields, weights, and tasting notes for each crop
+- **Zone-Based Calendar**: Adjusts planting windows for your hardiness zone
+- **Companion Planting Reference**: Based on what you've previously grown together
+- **Seasonal Memory**: References past successes and failures when you plan
+- **Local Chat Interface**: Ask garden questions answered only from your recorded history
+
+## Limitations
+The agent starts with no prior knowledge of your garden. It becomes useful after you've logged at least one season of planting and harvest data.
 
 ## Quick Start
+1.  Fork this repository
+2.  Create a Cloudflare KV namespace named `GARDENLOG_STORE`
+3.  Add your DeepSeek API key as a worker secret: `DEEPSEEK_API_KEY`
+4.  Deploy to Cloudflare Workers
+5.  Visit your worker URL to begin logging
 
-1. Fork this repository
-2. Create a Cloudflare KV namespace named `GARDENLOG_STORE`
-3. Add your DeepSeek API key as a secret: `DEEPSEEK_API_KEY`
-4. Deploy to Cloudflare Workers
-5. Visit your worker URL and start logging plants
-
-Your data stays in your KV store. The agent improves as you add more seasons.
+It becomes more relevant as you add your own garden data over time.
 
 ## API Reference
 
@@ -40,13 +51,10 @@ Your data stays in your KV store. The agent improves as you add more seasons.
 | `GET` | `/api/garden/calendar` | Planting calendar with month/zone filters |
 | `GET/POST` | `/api/journal` | Garden observations and notes |
 
-## Limitations
-
-The agent's memory is only as good as the data you provide. It learns from your logged plants, harvests, and notes—if you don't record something, it won't remember it. First-season guidance will be more generic until you build up your garden's history.
-
 ---
 
 <div>
-  <p>Part of the <a href="https://the-fleet.casey-digennaro.workers.dev" target="_blank">Cocapn Fleet</a> • Built by <a href="https://cocapn.ai" target="_blank">Superinstance & Lucineer (DiGennaro et al.)</a></p>
-  <p>MIT Licensed • Cloudflare Workers • Fork-first deployment</p>
+Part of the <a href="https://the-fleet.casey-digennaro.workers.dev">Cocapn Fleet</a> • 
+<a href="https://cocapn.ai">Cocapn Protocol</a><br>
+Attribution: Superinstance & Lucineer (DiGennaro et al.)
 </div>
